@@ -1,0 +1,40 @@
+{% extends 'myexplorer/base_sampler.html' %}   
+
+{% block title %}Samples{% endblock %}
+
+{% block head_extra %}
+{% endblock %}
+
+{% block right_side %}
+    <hr>
+    Random sub-sample.
+    <hr>
+
+    <script type="text/javascript">
+    </script>
+
+    <form action="{% url 'myexplorer:sub_sample' %}" method="post">{% csrf_token %}
+        <br>
+        {{form.sample.label}}
+        <br>
+        <font color='red'>{{form.sample.errors}}</font>
+        {{form.sample}} 
+        <br>
+        selected sample size: {{olds|length}}
+        <!--only show if sample selected -->
+        {% if olds|length > 0 %}
+            <hr>
+            {{form.sub_name.label}}
+            <br>
+            <font color='red'>{{form.sub_name.errors}}</font>
+            {{form.sub_name}}
+            <br>
+            {{form.sub_size.label}}
+            <br>
+            <font color='red'>{{form.sub_size.errors}}</font>
+            {{form.sub_size}}
+        <br>
+        <input type="submit" value="Submit" /> created: {{news|length}}
+        {% endif %}
+    </form>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'myexplorer/base_sampler.html' %}   
+
+{% block title %}Database{% endblock %}
+
+{% block head_extra %}
+{% endblock %}
+
+{% block right_side %}
+    <form action="{% url 'myexplorer:get_table_schema' %}" method="post">{% csrf_token %}
+        {{form.as_p}}
+        <input type="submit" value="Submit" />
+    </form>
+    <hr>
+    New Tables: {{new_tables|length}}
+    {% for tt in new_tables%}
+        <br>{{tt.ref}}{{tt.name}}
+    {% endfor %}
+    <hr>
+    Updated Tables: {{updated_tables|length}}
+    {% for tt in updated_tables%}
+        <br>{{tt.ref}}{{tt.name}}
+    {% endfor %}
+{% endblock %}

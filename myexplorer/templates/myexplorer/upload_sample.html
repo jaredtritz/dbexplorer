@@ -1,0 +1,32 @@
+{% extends 'myexplorer/base_sampler.html' %}   
+
+{% block title %}Samples{% endblock %}
+
+{% block head_extra %}
+{% endblock %}
+
+{% block right_side %}
+    <hr>
+    Upload list of student ids with one id per line and no header. 
+    <hr>
+    <form action="{% url 'myexplorer:upload_sample' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+        {{form.sample_name.label}}
+        <br>
+        <font color='red'>{{form.sample_name.errors}}</font>
+        {{form.sample_name}}
+        <br>
+        {{form.sample_key_column.label}}
+        <br>
+        <font color='red'>{{form.sample_key_column.errors}}</font>
+        {{form.sample_key_column}}
+        <br>
+        {{form.csv_file.label}}
+        <br>
+        <font color='red'>{{form.csv_file.errors}}</font>
+        {{form.csv_file}}
+        <br>
+        <br>
+        <input type="submit" value="Submit" /> loaded: {{fixed|length}}
+    </form>
+    <hr>
+{% endblock %}

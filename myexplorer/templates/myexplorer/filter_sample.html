@@ -1,0 +1,123 @@
+{% extends 'myexplorer/base_sampler.html' %}   
+
+{% block title %}Samples{% endblock %}
+
+{% block head_extra2 %}
+
+    <script type="text/javascript">
+        function save_sample_dialog(e)
+        {
+            $('#new_sample_modal').modal('show');
+        }
+        function test_sample()
+        {
+            $('#id_test_sample_trigger').val(true);
+            $('form').submit();
+        }
+        function save_sample_action()
+        {
+            var name = $('#id_new_sample_name').val();
+            if(name.length > 0)
+            {
+                $('#id_new_sample_trigger').val(true);
+                $('form').submit();
+            }
+            else
+            {
+                alert('Please enter a name for the sample');
+                return
+            }
+        }
+    </script>
+
+{% endblock %}
+
+{% block right_side %}
+    <hr>
+    Number of students: {{num_students}}
+    <form id='theform' action="{% url 'myexplorer:filter_sample' %}" method="post">{% csrf_token %}
+        <hr>
+        {{filterform.sfilter.label}}<br>
+        {{filterform.sfilter}}
+        {% if sfilter.ref_table_column != None %}
+            <br>
+            Reference Table Column: <font color='blue'>{{sfilter.ref_table_column}}</font>
+        {% endif %}
+        {% comment %}
+        {{filterformset.as_p}}
+        {{filterformset.management_form}}
+        {% endcomment %}
+ 
+        <hr>
+        <strong>Categoric Filter Options</strong>
+        <br>
+        {{catformset.management_form}}
+        {% comment %}
+        {{catformset.as_table}} 
+        {% endcomment %}
+        {% for form in catformset.forms %}
+            <br>
+            {{ form.id }}
+            <font color='blue'>{{form.label}}</font>
+            ( delete: {{ form.DELETE }} )
+            <br>
+            {{form.categories}}
+        {% endfor %}
+        <hr> 
+        <strong>Numeric Filter Options</strong>
+        <br>
+        {{numformset.management_form}} 
+        {% for form in numformset.forms %}
+            <br>
+            {{ form.id }}
+            <font color='blue'>{{form.label}}</font>
+            ( delete: {{ form.DELETE }} )
+            <br>
+            <font color='red'>{{form.min_num.errors}}</font>
+            {{form.min_num}}
+            <font color='red'>{{form.max_num.errors}}</font>
+            {{form.max_num}}
+        {% endfor %}
+        <hr> 
+        <strong>Date Filter Options</strong>
+        <br>
+        {{dateformset.management_form}} 
+        {% for form in dateformset.forms %}
+            <br>
+            {{ form.id }}
+            <font color='blue'>{{form.label}}</font>
+            ( delete: {{ form.DELETE }} )
+            <br>
+            <font color='red'>{{form.min_date.errors}}</font>
+            {{form.min_date}}
+            <font color='red'>{{form.max_date.errors}}</font>
+            {{form.max_date}}
+        {% endfor %}
+        {% comment %}
+        {{formset.as_table}} 
+        {% endcomment %}
+        {% if sfilter.ref_table_column != None %}
+            <br>
+            <button class="btn" onclick="test_sample();">Test filter</button>
+            <button class="btn" onclick="save_sample_dialog(); return false;">Save sample</button>
+            <!-- Modals -->
+            <div id="new_sample_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="myModalLabel">New Sample</h3>
+                </div>
+                <div class="modal-body">
+                <br>
+                {{ newsampleform.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                    <button class="btn btn-primary" onclick="save_sample_action(); return false;">Save changes</button>
+                </div>
+            </div>
+        {% endif %}
+
+    </form>
+
+{% endblock %}
+

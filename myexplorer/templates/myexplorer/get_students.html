@@ -1,0 +1,17 @@
+{% extends 'myexplorer/base_sampler.html' %}   
+
+{% block title %}Sampler - {% endblock %}
+
+{% block head_extra %}
+{% endblock %}
+
+{% block right_side %}
+    <hr>
+    Existing Students: {{existing}}
+    <br>
+    Added Students: {{news|length}}
+    {% for tt in news%}
+        <br>{{tt}}
+    {% endfor %}
+    <hr>
+{% endblock %}

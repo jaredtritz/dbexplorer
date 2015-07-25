@@ -1,0 +1,10 @@
+
+.clickable:hover{
+    cursor: pointer;
+    cursor: hand;
+    text-decoration:underline;
+}
+
+a.active{
+    color: red;
+}

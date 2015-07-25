@@ -1,0 +1,133 @@
+{% extends 'myexplorer/base_sampler.html' %}   
+
+{% block title %}Analysis{% endblock %}
+
+{% block head_extra2 %}
+
+    <style>
+        .node.selected {
+            color:red;
+        }
+    </style>
+
+    <script type="text/javascript">
+
+        function calculate_properties_ajax()
+        {
+            var sure = prompt("This will trigger calculation of selected properties. \n\nIf you would like to recieve an email upon completion please type 'yes' in the box below.");
+            if(sure == null)
+            {
+                return false;
+            }
+            var email = sure;
+            if (email.toLowerCase() != 'yes')
+                email = 'no'
+            else
+                email = 'yes'
+            var sproperties = [];
+            $(".node").each(function(){
+                $(this).find('font').attr('color');
+                if($(this).hasClass('selected'))
+                {
+                    sproperties.push(this.id.replace('node_', '')); 
+                }
+            });
+            var sparg = JSON.stringify(sproperties);
+            $.ajax({
+                type: 'GET',
+                url: '{% url 'myexplorer:calculate_properties_ajax' %}',
+                data: {'sproperties':sparg, 'email':email}, 
+                success: function(data)
+                {
+                    alert("Ok, the server has queued this work.");
+                    ;//window.location = "{% url 'myexplorer:canned_properties' %}"
+                }
+             });
+        }
+
+        var isDown = false;     // Tracks status of mouse button
+        $(document).ready(function() {
+            // key bindings
+            document.getElementsByTagName('body')[0].onkeyup = function(e) { 
+                var ev = e || event;
+                if(ev.keyCode == 71 && ev.shiftKey) { // g
+                    //show_waiting();
+                    calculate_properties_ajax();
+                }
+            }
+            // painting actions
+            $(document).mouseup(function(){
+                isDown = false;     
+            });
+            $('.block-events').mousedown(function(e){
+                isDown = true;
+                e=e || window.event;
+                pauseEvent(e);
+            });
+            $(".node").mouseover(function(e){
+                if(isDown) {        
+                    //console.log(isDown);
+                    paintAction(this);
+                }
+                e=e || window.event;
+                pauseEvent(e);
+            });
+            $('.node').mousedown(function(e){
+                //console.log(isDown);
+                paintAction(this);
+            });
+            function paintAction(tr){
+                //var id = $(tr).attr('id')
+                //console.log(id);
+                var cc = $(tr).toggleClass('selected');
+            }
+            function pauseEvent(e){
+                if(e.stopPropagation) e.stopPropagation();
+                if(e.preventDefault) e.preventDefault();
+                e.cancelBubble=true;
+                e.returnValue=false;
+                return false;
+            }
+        });
+
+    </script>
+
+{% endblock %}
+
+{% block right_side %}
+
+    <form id='properties_sample_form' action="{% url 'myexplorer:canned_properties' %}" method="post">{% csrf_token %}
+        {{properties_sample_form.as_p}}
+
+        {% if sample.id != None %}
+
+            &lt;Click&gt; or &lt;Click-drag&gt; over property rows with mouse to "paint" properties <font color='red'>active-red</font>
+            <br>
+            <a href='#' onclick="event.preventDefault(); calculate_properties_ajax();">&lt;Shift-g&gt;</a> to initiate calculation of <font color='red'>active-red</font> properties
+
+            <div class='block-events'>
+            <br>
+            <button type="button" onclick="$('#properties_sample_form').submit();">refresh</button> 
+            : reloads page while keeping sample selection
+            <br>
+            <br>
+                <table class="table table-striped table-bordered table-condensed table-hover">
+                <tr>
+                    <th>Property Label</th>
+                    <th>Property Status</th>
+                </tr>
+                {% for sp in sproperties%}
+                    <tr id='node_{{sp.id}}' class='node'>
+                        <td>{{sp.label}}</td>
+                        <td>{{sp.status}}</td>
+                    </tr>
+                {% endfor %}
+                </table>
+            <br>
+            <br>
+            </div>
+        {% endif %}
+
+    </form>
+    
+{% endblock %}

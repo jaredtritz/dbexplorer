@@ -1,0 +1,15 @@
+{% extends 'new_base.html' %}   
+
+{% block title %}About{% endblock %}
+
+{% block page_content %}
+
+This is a django application written to help abstract the process of exploring the data warehouse. 
+<br>
+<br>
+Here's a <a href="{% url 'myexplorer:table_schema_transfer' %}">link to get started</a> but you must have staff privileges to use it.
+<br>
+<br>
+To request staff privileges please email <a href="mailto:jtritz@umich.edu">jtritz@umich.edu</a>
+
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends 'myexplorer/base_sampler.html' %}   
+
+{% block title %}Database{% endblock %}
+
+{% block head_extra2 %}
+
+    <script type="text/javascript">
+
+    $(document).ready(function() {
+        // key bindings
+        document.getElementsByTagName('body')[0].onkeyup = function(e) { 
+            var ev = e || event;
+            //alert (ev.keyCode);
+            if(ev.keyCode == 78 && ev.ctrlKey) {
+                alert('next')
+            }
+            if(ev.keyCode == 80 && ev.ctrlKey) {
+                alert('prev')
+            }
+        }
+        // right click context
+        $('.context_table_column_data').contextMenu('menu_table_column_data', {
+            bindings: {
+                'text_summary': function(t) {
+                    alert('text summary: '+t.id);
+                },
+                'graphical_summary': function(t) {
+                    popup_histogram(t.id);
+                },
+                'new_filter': function(t) {
+                    new_filter(t.id);
+                },
+                'add_to_filter': function(t) {
+                    add_to_filter(t.id);
+                }
+            }
+        });
+    });
+    // normal ajax
+    function new_filter(data)
+    {
+        data = data.split(',');
+        jQuery('#id_new_filter_join').val(data[0]+'.'+data[1]+'.'+data[2]);
+        jQuery('#new_filter_message').html(data[0]+' . '+data[1]+' . '+data[2]);
+        // popup modal dialog
+        $('#new_filter_modal').modal('show');
+    }
+    function validate_new_filter()
+    {
+        fname = jQuery('#id_new_filter_name').val();
+        if (fname.length < 1)
+        {
+            alert('you must name this filter');
+            return 
+        }
+        var frm = $('#new_filter_form');
+        $.ajax({
+            type: frm.attr('method'),
+            url: frm.attr('action'),
+            data: frm.serialize(), // serializes the form's elements.
+            success: function(data)
+            {
+                window.location.reload(true);
+            }
+         });
+        return false; // avoid to execute the actual submit of the form.
+    }
+    function add_to_filter(data)
+    {
+        data = data.split(',');
+        jQuery('#id_addto_filter_table_ref').val(data[0]);
+        jQuery('#id_addto_filter_table').val(data[1]);
+        jQuery('#id_addto_filter_column').val(data[2]);
+        jQuery('#add_to_filter_message').html(data[0]+' . '+data[1]+' . '+data[2]);
+
+        var dtype = data[3];
+        if (dtype == 'NUMBER')
+        {
+            jQuery('#id_addto_filter_type').val('num');
+        }
+        else if (dtype == 'VARCHAR2')
+        {
+            jQuery('#id_addto_filter_type').val('cat');
+        }
+        else if (dtype == 'DATE')
+        {
+            jQuery('#id_addto_filter_type').val('date');
+        }
+        else
+        {
+            alert('unhandled datatype: '+dtype);
+            return
+        }
+        // popup modal dialog
+        $('#add_to_filter_modal').modal('show') 
+    }
+    function validate_add_to_filter()
+    {
+        fname = jQuery('#id_addto_filter_name').val();
+        if (fname.length < 1)
+        {
+            alert('you must select a filter');
+            return 
+        }
+        var frm = $('#add_to_filter_form');
+        $.ajax({
+            type: frm.attr('method'),
+            url: frm.attr('action'),
+            data: frm.serialize(), // serializes the form's elements.
+            success: function(data)
+            {
+                alert(data);
+                window.location.reload(true);
+            }
+         });
+        return false; // avoid to execute the actual submit of the form.
+
+    }
+    // popup ajax
+    function popup_histogram(data)
+    {
+        data = data.split(',');
+        jQuery('#id_hist_table_ref').val(data[0]);
+        jQuery('#id_hist_table').val(data[1]);
+        jQuery('#id_hist_column').val(data[2]);
+        var dtype = data[3];
+        if (dtype == 'NUMBER')
+        {
+            jQuery('#id_hist_type').val('num');
+            jQuery('#id_hist_numroundto').val(prompt_for_integer('please enter integer for rounding, or cancel to skip'));
+            jQuery('#id_hist_min_num').val(prompt_for_number('please enter MIN value, or cancel to skip'));
+            jQuery('#id_hist_max_num').val(prompt_for_number('please enter MAX value, or cancel to skip'));
+        }
+        else if (dtype == 'VARCHAR2')
+        {
+            jQuery('#id_hist_type').val('cat');
+        }
+        else if (dtype == 'DATE')
+        {
+            jQuery('#id_hist_type').val('date');
+            jQuery('#id_hist_dateroundto').val(prompt_for_date_round("please enter 'day', 'week', 'month', or 'year' for date rounding"));
+            jQuery('#id_hist_min_date').val(prompt_for_date("please enter MIN date 'yyyy-mm-dd'"));
+            jQuery('#id_hist_max_date').val(prompt_for_date("please enter MAX date 'yyyy-mm-dd'"));
+        }
+        else
+        {
+            alert('unhandled datatype: '+dtype);
+            return
+        }
+        if (confirm('Are you sure you want to create this histogram report?'))
+        {
+            var f = jQuery('#histogram_form');
+            window.open('about:blank','histogram_window','toolbar=0,scrollbars=0,location=0,statusbar=0,menubar=0,resizable=0,width=800,height=500,left = 312,top = 234');
+            f.submit();
+        }
+        else 
+            return
+    }     
+    function prompt_for_number(words)
+    {
+        var num = '';
+        while(true)
+        {
+            ans = prompt(words);
+            if(ans == null)
+                break
+            if(!isNaN(ans) && ans.length > 0)
+            {
+                num = ans;
+                break
+            }
+        }
+        return num
+    }
+    function prompt_for_integer(words)
+    {
+        var num = '';
+        while(true)
+        {
+            ans = prompt(words);
+            if(ans == null)
+                break
+            if(!isNaN(ans) && ans.length > 0 && parseInt(ans) == parseFloat(ans))
+            {
+                num = ans;
+                break
+            }
+        }
+        return num
+    }
+    function prompt_for_date_round(words)
+    {
+        var res = '';
+        while(true)
+        {
+            ans = prompt(words);
+            if(ans == null)
+                break
+            if(ans=='day' || ans=='week' || ans=='month' || ans=='year')
+            {
+                res = ans;
+                break
+            }
+        }
+        return res
+    }
+    function prompt_for_date(words)
+    {
+        start = new Date(1970,0,1)
+        start = start.getTime()/1000;
+        end = new Date()
+        end = end.getTime()/1000;
+        var mydate = '';
+        var year = '';
+        var month = '';
+        var day = '';
+        while(true)
+        {
+            ans = prompt(words);
+            if(ans == null)
+                break
+            parts = ans.split('-');
+            year = parts[0];
+            month = parts[1];
+            day = parts[2];
+            // month has to be shifted
+            if(!isNaN(month) && month.length > 0)
+                month -= 1;
+            try_secs = new Date(year, month, day)
+            try_secs = try_secs.getTime()/1000;
+            if( try_secs > start && try_secs < end) 
+            {
+                mydate = try_secs;
+                break
+            }
+        }
+        //alert(new Date(mydate*1000).toString());
+        //alert(mydate);
+        return mydate
+    }
+        
+    </script>
+
+{% endblock %}
+
+{% block right_side %}
+
+    <!-- Context Menus -->
+    <div class="contextMenu" style="width:200px;" id="menu_table_column_data">
+      <ul>
+        <li id="text_summary">Text_Summary</li>
+        <li id="graphical_summary">Histogram_Summary</li>
+        <li id="new_filter">New_Sample_Filter</li>
+        <li id="add_to_filter">Add_Filter_Option</li>
+      </ul>
+    </div>
+
+    <!-- Modals -->
+    <div id="new_filter_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel">New Sample Filter</h3>
+        </div>
+        <div class="modal-body">
+        Reference table column: <font color='blue'><span id='new_filter_message'></span></font>
+        <br>
+        <form id='new_filter_form' action="{% url 'myexplorer:new_filter' %}" method="post">{% csrf_token %}
+        {{ new_filter_form.as_p }}
+        </form>
+
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            <button class="btn btn-primary" onclick="validate_new_filter();">Save changes</button>
+        </div>
+    </div>
+
+    <div id="add_to_filter_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel">Add Filter Option</h3>
+        </div>
+        <div class="modal-body">
+        Ref.table.column: <font color='blue'><span id='add_to_filter_message'></span></font>
+        <br>
+        <form id='add_to_filter_form' action="{% url 'myexplorer:add_to_filter' %}" method="post">{% csrf_token %}
+        {{ add_to_filter_form.as_p }}
+        </form>
+
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            <button class="btn btn-primary" onclick="validate_add_to_filter();">Save changes</button>
+        </div>
+    </div>
+
+    Number of Tables: {{tables|length}}
+    {% for tt in tables%}
+        <br>{{tt|safe}}
+    {% endfor %}
+    <hr>
+
+    <form id='histogram_form' action="{% url 'myexplorer:table_column_hist' %}" method="post" target='histogram_window'>{% csrf_token %}
+    {{ hist_form.as_p }}
+    </form>
+
+{% endblock %}

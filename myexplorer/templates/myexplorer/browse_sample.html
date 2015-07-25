@@ -1,0 +1,212 @@
+{% extends 'myexplorer/base_sampler.html' %}   
+
+{% block title %}Samples{% endblock %}
+
+{% block head_extra2 %}
+
+    <script type="text/javascript">
+        var all_results_toggle = true;
+        var mod_direction = '+';
+        var focus_ref = '';
+        var focus_table = '';
+        var sample_id = NaN;
+        function show_waiting()
+        {
+            var body = document.body, html = document.documentElement;
+            var height = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
+            var width = Math.max( body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth );
+            $('#fader_div').css('height', height); 
+            $('#fader_div').css('width', width); 
+            $('#fader_div').show(); 
+        }
+        function retrieve_data()
+        {
+            sample_id = $('#id_sample').val();
+            if (isNaN(parseInt(sample_id)))
+            {
+                alert('must choose a sample');
+                $('#fader_div').hide(); 
+                return
+            }
+            if(all_results_toggle){
+                retrieve_osample_ajax();
+            }
+            else{
+                retrieve_oresult_ajax();
+            }
+        }
+        function bind_context_menus()
+        {
+            // mouse events
+            $('.context_result_table').contextMenu('menu_result_table', {
+                bindings: {
+                    'focus_on_table': function(t) {
+                        var data = t.id.split(',');
+                        focus_ref = data[0];
+                        focus_table = data[1];
+                        all_results_toggle = false;
+                        retrieve_data();
+                        //alert('text summary: '+t.id);
+                    }
+                }
+            });
+            $('.context_result_column').contextMenu('menu_result_column', {
+                bindings: {
+                    'entries_per_student': function(t) {
+                        popup_histogram(t.id, 'num_entries');
+                    },
+                    'column_distribution': function(t) {
+                        popup_histogram(t.id, 'col_dist');
+                    }
+                }
+            });
+            $('.context_result_data').contextMenu('menu_result_data', {
+                bindings: {
+                    'text_summary': function(t) {
+                        alert('text summary: '+t.id);
+                    }
+                }
+            });
+        }
+        function popup_histogram(data, kind)
+        {
+            var data = data.split(',');
+            jQuery('#id_hist_sample').val(sample_id);
+            jQuery('#id_hist_kind').val(kind);
+            jQuery('#id_hist_table_ref').val(data[0]);
+            jQuery('#id_hist_table').val(data[1]);
+            jQuery('#id_hist_column').val(data[2]);
+            if (confirm('Are you sure you want to create this histogram report?'))
+            {
+                var f = jQuery('#histogram_form');
+                window.open('about:blank','histogram_window','toolbar=0,scrollbars=0,location=0,statusbar=0,menubar=0,resizable=0,width=800,height=500,left = 312,top = 234');
+                f.submit();
+            }
+            else 
+                return
+        }     
+        $(document).ready(function() {
+            // key bindings
+            document.getElementsByTagName('body')[0].onkeyup = function(e) { 
+                var ev = e || event;
+                if(ev.keyCode == 65 && ev.shiftKey) { // a
+                    toggle_results();
+                }
+                if(ev.keyCode == 78 && ev.shiftKey) { // n
+                    browse_next();
+                }
+                if(ev.keyCode == 80 && ev.shiftKey) { // p
+                    browse_prev();
+                }
+            }
+            // initial retrieve
+            retrieve_data();
+        });
+        function toggle_results()
+        {
+            all_results_toggle = 1 - (all_results_toggle * 1)
+            show_waiting();
+            retrieve_data();
+            
+        }
+        function browse_next()
+        {
+            show_waiting();
+            mod_osample++;
+            mod_direction = '+';
+            retrieve_data();
+            
+        }
+        function browse_prev()
+        {
+            show_waiting();
+            mod_osample--;
+            mod_direction = '-';
+            retrieve_data();
+        }
+        var mod_osample = 0;
+        function retrieve_osample_ajax()
+        {
+            $.ajax({
+                type: 'GET',
+                url: '{% url 'myexplorer:retrieve_osample_ajax' %}',
+                data: {'sample_id':sample_id, 'mod_osample':mod_osample}, 
+                success: function(data)
+                {
+                    $('#rdata_container').html(data);
+                    $('#fader_div').hide(); 
+                    bind_context_menus();
+                    //alert('done');
+                }
+            });
+        }
+        function retrieve_oresult_ajax()
+        {
+            $.ajax({
+                type: 'GET',
+                url: '{% url 'myexplorer:retrieve_oresult_ajax' %}',
+                contentType: "application/json",
+                data: {
+                    'sample_id':sample_id, 
+                    'mod_osample':mod_osample, 
+                    'mod_direction':mod_direction, 
+                    'ref':focus_ref, 
+                    'table':focus_table
+                }, 
+                success: function(data)
+                {
+                    mod_osample = data.mod_osample
+                    $('#rdata_container').html(data.html);
+                    $('#fader_div').hide(); 
+                    bind_context_menus();
+                    //alert('done');
+                }
+            });
+        }
+    </script>
+
+{% endblock %}
+
+{% block right_side %}
+    
+    <form id='choose_sample_form' action="{% url 'myexplorer:browse_sample' %}" method="post">{% csrf_token %}
+        {{choose_sample_form.as_p}}
+    </form>
+    
+    <a href='#' onclick="event.preventDefault(); toggle_results();">&lt;Shift-a&gt;</a> toggle all results
+    <br>
+    <a href='#' onclick="event.preventDefault(); browse_next();">&lt;Shift-n&gt;</a> browse next sample
+    <br>
+    <a href='#' onclick="event.preventDefault(); browse_prev();">&lt;Shift-p&gt;</a>browse previous sample
+
+    <!-- Context Menus -->
+    <div class="contextMenu" style="width:200px;" id="menu_result_table">
+      <ul>
+        <li id="focus_on_table">Focus_On_Table</li>
+      </ul>
+    </div>
+
+    <div class="contextMenu" style="width:200px;" id="menu_result_column">
+      <ul>
+        <li id="entries_per_student">Entries_Per_Student</li>
+        <li id="column_distribution">Column_Distribution</li>
+      </ul>
+    </div>
+
+    <div class="contextMenu" style="width:200px;" id="menu_result_data">
+      <ul>
+        <li id="text_summary">Text_Summary</li>
+      </ul>
+    </div>
+
+    <!-- Modal Fade -->
+    <div id='fader_div' style="background-color: rgba(248, 247, 216, 0.7); position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+
+    <!-- histogram form -->
+    <form id='histogram_form' action="{% url 'myexplorer:sample_hist' %}" method="post" target='histogram_window'>{% csrf_token %}
+    {{ sample_column_hist_form.as_p }}
+    </form>
+    
+    <!-- results container HACK-ALERT bug finding forms above if this is not last...-->
+    <div id='rdata_container'><div>
+{% endblock %}

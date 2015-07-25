@@ -1,0 +1,32 @@
+{% extends 'myexplorer/base_sampler.html' %}   
+
+{% block title %}Reports{% endblock %}
+
+{% block head_extra2 %}
+
+    <script type="text/javascript">
+
+  
+    </script>
+
+{% endblock %}
+
+{% block right_side %}
+
+    Number of Reports: {{reports|length}}
+    <table class="table table-striped table-bordered table-condensed table-hover">
+    <tr>
+        <th>Report</th>
+        <th>Sample</th>
+        <th>Name</th>
+    </tr>
+    {% for rr in reports%}
+        <tr>
+            <td><a href='{% url 'myexplorer:html_reports' path=rr.get_link %}'>{{rr.get_link|safe}}</a></td>
+            <td>{{rr.sample.name}}</td>
+            <td>{{rr.name}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+
+{% endblock %}

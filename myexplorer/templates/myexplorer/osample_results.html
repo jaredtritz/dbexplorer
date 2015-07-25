@@ -1,0 +1,9 @@
+
+<hr>
+Browsing object id: {{sample_obj.oid}}
+<hr>
+Number of Tables: {{rdata|length}}
+{% for rr in rdata%}
+    <br>{{rr|safe}}
+{% endfor %}
+

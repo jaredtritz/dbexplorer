@@ -1,0 +1,87 @@
+{% extends 'myexplorer/simple_base.html' %}   
+
+{% block title %}histogram{% endblock %}
+
+{% block head_extra %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        window.onkeyup = function (event) {
+            if (event.keyCode == 27) {
+                window.close ();
+            }
+        }
+
+        // Load the Visualization API and the piechart package.
+        google.load('visualization', '1.0', {'packages':['corechart']});
+
+        // Set a callback to run when the Google Visualization API is loaded.
+        google.setOnLoadCallback(drawChart);
+
+        // Callback that creates and populates a data table, 
+        // instantiates the pie chart, passes in the data and
+        // draws it.
+
+        // save zip for a rainy day!
+        function zip(arrays) {
+            return arrays[0].map(function(_,i){
+                return arrays.map(function(array){return array[i]})
+            });
+        }
+
+        var mydata = {{plot_pairs|safe}}
+        function drawChart(){
+
+            // Create the data table.
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Entry');
+            data.addColumn('number', 'Counts');
+            data.addRows(mydata);
+
+            // Set chart options
+            var options = {
+                //'title':'How Much Pizza I Ate Last Night',
+                'title':'{{plot_title}}',
+                'hAxis': {title: '{{plot_xlab}}', titleTextStyle: {color: 'red'}},
+                'vAxis': {title: '{{plot_ylab}}', titleTextStyle: {color: 'red'}},
+                'width':700,
+                'height':400
+            };
+
+            // Instantiate and draw our chart, passing in some options.
+            var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+
+            function selectHandler() {
+                var selectedItem = chart.getSelection()[0];
+                if (selectedItem) {
+                    var sel_val = data.getValue(selectedItem.row, 0);
+                    alert('The user selected ' + sel_val);
+                }
+            }
+
+            google.visualization.events.addListener(chart, 'select', selectHandler);    
+            chart.draw(data, options);
+        }
+
+    </script>
+
+{% endblock %}
+
+{% block page_content %}
+    {% comment %}
+    {% for tt in prop_bins %}
+        <br>
+        {{tt.title}}
+        <br>
+        {{tt.ydat}}
+        <br>
+        {{tt.xdat}}
+        <br>
+        {{tt.xlab}}
+        <br>
+        {{tt.ylab}}
+        <br>
+        -----------------------------------------
+    {% endfor %}
+    {% endcomment %}
+    <div id="chart_div" style="width:400; height:300"></div>
+{% endblock %}

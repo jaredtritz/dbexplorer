@@ -1,0 +1,186 @@
+{% extends 'myexplorer/simple_base.html' %}   
+{% load static %}
+
+{% block title %}histogram{% endblock %}
+
+{% block head_extra %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src='{% static "highlight/highlight.pack.js" %}'></script>
+    <link rel="stylesheet" href='{% static "highlight/styles/default.css" %}'/>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            hljs.initHighlightingOnLoad();
+        })
+        window.onkeyup = function (event) {
+            if (event.keyCode == 27) {
+                window.close ();
+            }
+        }
+
+        // Load the Visualization API and the piechart package.
+        google.load('visualization', '1.0', {'packages':['corechart']});
+
+        // Set a callback to run when the Google Visualization API is loaded.
+        google.setOnLoadCallback(drawChart_norm);
+        google.setOnLoadCallback(drawChart_cum);
+
+        // Callback that creates and populates a data table, 
+        // instantiates the pie chart, passes in the data and
+        // draws it.
+
+        // save zip for a rainy day!
+        function zip(arrays) {
+            return arrays[0].map(function(_,i){
+                return arrays.map(function(array){return array[i]})
+            });
+        }
+
+        var mydata_norm = {{plot_pairs_norm|safe}}
+        function drawChart_norm(){
+            // Create the data table.
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Entry');
+            data.addColumn('number', '{{sampleA_label}}');
+            data.addColumn('number', '{{sampleB_label}}');
+            data.addRows(mydata_norm);
+            // Set chart options
+            var options = {
+                'title':'',
+                'hAxis': {title: '{{plot_xlab}}', titleTextStyle: {color: 'red'}},
+                'vAxis': {title: '{{plot_ylab}}', titleTextStyle: {color: 'red'}},
+                'legend': { position: 'top', maxLines: 1 },
+                'width':700,
+                'height':400,
+                'chartArea':{left:10,width:"90%"}
+            };
+            var chart = new google.visualization.LineChart(document.getElementById('chart_div_norm'));
+            function selectHandler() {
+                var selectedItem = chart.getSelection()[0];
+                if (selectedItem) {
+                    var sel_val = data.getValue(selectedItem.row, 0);
+                    alert('The user selected ' + sel_val);
+                }
+            }
+            google.visualization.events.addListener(chart, 'select', selectHandler);    
+            chart.draw(data, options);
+        }
+
+        var mydata_cum = {{plot_pairs_cum|safe}}
+        function drawChart_cum(){
+            // Create the data table.
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Entry');
+            data.addColumn('number', '{{sampleA_label}}');
+            data.addColumn('number', '{{sampleB_label}}');
+            data.addRows(mydata_cum);
+            // Set chart options
+            var options = {
+                'title':'',
+                'hAxis': {title: '{{plot_xlab}}', titleTextStyle: {color: 'red'}},
+                'vAxis': {title: '{{plot_ylab}}', titleTextStyle: {color: 'red'}},
+                'legend': { position: 'top', maxLines: 1 },
+                'width':700,
+                'height':400,
+                'chartArea':{left:10,width:"90%"}
+            };
+            var chart = new google.visualization.LineChart(document.getElementById('chart_div_cum'));
+            function selectHandler() {
+                var selectedItem = chart.getSelection()[0];
+                if (selectedItem) {
+                    var sel_val = data.getValue(selectedItem.row, 0);
+                    alert('The user selected ' + sel_val);
+                }
+            }
+            google.visualization.events.addListener(chart, 'select', selectHandler);    
+            chart.draw(data, options);
+        }
+
+    </script>
+
+{% endblock %}
+
+{% block page_content %}
+    <table border='0'>
+        <tr>
+            <td valign='top'>
+                <table border='0'>
+                    <tr>
+                        <td valign='top' align='left'>
+                            <u><strong>Normalized Histogram Distribution:</strong></u>
+                            <div id="chart_div_norm" style="width:400; height:300"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td valign='top' align='left'>
+                            <u><strong>Normalized Cumulative Distribution:</strong></u>
+                            <div id="chart_div_cum" style="width:400; height:300"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td valign='top' align='left'>
+                            <u><strong>Important Code:</strong></u><br><br>
+                            <pre><code class="hljs python">
+{{code_calc}}
+                            </code></pre>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <u><strong>Property errors:</strong></u><br><br>
+                            <strong>{{sampleA_label}}:</strong><br>
+                            <ul>
+                            {% for ee in errorsA %}
+                                <li>{{ee.message}}</li>
+                            {% endfor %}
+                            </ul>
+                            <strong>{{sampleB_label}}:</strong><br>
+                            <ul>
+                            {% for ee in errorsB %}
+                                <li>{{ee.message}}</li>
+                            {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td valign='top' align='left'>
+                <u><strong>Number of objects with property:</strong></u><br>
+                <br>
+                <strong>{{numA}} : {{sampleA_label}}</strong>
+                <br>
+                <strong>{{numB}} : {{sampleB_label}}</strong>
+                <br>
+                <br>
+                <u><strong>Plot data:</strong></u><br><br>
+                <table class="table table-striped table-condensed" style="padding: 40px;">
+                    <tr>
+                        <!--<th><font color='red'>{{plot_xlab}}</font></th>-->
+                        <th></th>
+                        <th colspan='2'>{{sampleA_label}}</th>
+                        <th></th>
+                        <th colspan='2'>{{sampleB_label}}</th>
+                    </tr>
+                    <tr>
+                        <td>x-axis</td>
+                        <td>hist</td>
+                        <td>cum</td>
+                        <td>&nbsp;</td>
+                        <td>hist</td>
+                        <td>cum</td>
+                    </tr>
+                {% for pp in plot_pairs_both %}
+                    <tr> 
+                        <td>{{pp.1.0}}</td>
+                        <td><font color='blue'>{{pp.0.1}}</font></td>
+                        <td><font color='blue'>{{pp.1.1}}</font></td>
+                        <td>&nbsp;</td>
+                        <td><font color='red'>{{pp.0.2}}</font></td>
+                        <td><font color='red'>{{pp.1.2}}</font></td>
+                    </tr> 
+                {% endfor %}
+                </table>
+            </td>
+        </tr>
+    </table>
+
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'myexplorer/base_sampler.html' %}   
+
+{% block title %}Samples{% endblock %}
+
+{% block head_extra2 %}
+    <script type="text/javascript">
+        function retrieve_sample_ajax(sample_id)
+        {
+            var sure = confirm("Are you sure you want to trigger a retrieval for this sample? This could take anywhere form 5 minutes to 30 minutes depending on sample size and we'll email when it's complete");
+            if(!sure)
+            {
+                return false;
+            }
+            $.ajax({
+                type: 'GET',
+                url: '{% url 'myexplorer:retrieve_sample_ajax' %}',
+                data: {'sample':sample_id}, 
+                success: function(data)
+                {
+                    ;//alert("This could take a while!  We'll email you when it's finished");
+                    window.location = "{% url 'myexplorer:review_samples' %}"
+                }
+             });
+        }
+    </script>
+{% endblock %}
+
+{% block right_side %}
+    Sample data:
+    <table class="table table-striped table-bordered table-condensed table-hover">
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Objects</th>
+        <th>Creator</th>
+    </tr>
+    {% for ss in samples%}
+        <tr onclick="retrieve_sample_ajax({{ss.id}});">
+            <td>{{ss.id}}</td>
+            <td>{{ss.name}}</td>
+            <td>{{ss.status}}</td>
+            <td>{{ss.osamples_total|length}}</td>
+            <td>{{ss.user}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endblock %}

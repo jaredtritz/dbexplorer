@@ -1,0 +1,29 @@
+ <html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+     <title>
+      Google Visualization API Sample
+     </title>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+     <script type="text/javascript">
+       google.load('visualization', '1.0', {packages: ['imagechart']});
+     </script>
+    <script type="text/javascript">
+      function drawVisualization() {
+        var options = {};
+        dataTable = google.visualization.arrayToDataTable([
+               ['Gainers',10,30,45,60],
+               ['Losers',20,35,25,45],
+        ], true);
+
+        var chart = new google.visualization.ImageCandlestickChart(document.getElementById('visualization'));
+        chart.draw(dataTable, options);
+      }
+
+      google.setOnLoadCallback(drawVisualization);
+     </script>
+  </head>
+   <body style="font-family: Arial;border: 0 none;">
+     <div id="visualization" style="width: 300px; height: 300px;"></div>
+   </body>
+</html>

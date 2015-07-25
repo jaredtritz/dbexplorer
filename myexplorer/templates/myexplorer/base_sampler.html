@@ -1,0 +1,64 @@
+{% extends 'new_base.html' %}   
+
+{% block title %}Samples{% endblock %}
+
+{% block head_extra %}
+
+    <script type="text/javascript">
+
+    </script>
+
+    {% block head_extra2 %}
+
+    {% endblock %}
+{% endblock %}
+
+{% block header_content %}
+    <!--
+    <h3>Transfer Student App</h3>
+    <ul class="nav nav-pills pull-left">
+        {% for nn in tool_nav%}
+            <li class="{{nn.1}}">
+            <a href='{{nn.2}}'>{{nn.0}}</a>
+            </li>
+        {% endfor %}
+    </ul>
+    -->
+{% endblock %}
+
+
+{% block horizontal_menu %}
+    <ul class="nav nav-tabs">
+        {% for nn in tab_nav%}
+            <li class="{{nn.1}}">
+            <a href='{{nn.2}}'>{{nn.0}}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+{% block page_content %}
+    <div class="row-fluid">
+        <div class="span2 bs-docs-sidebar">
+            <ul class="nav nav-list">
+                <li class="nav-header">Side Nav</li>
+                {% for nn in side_nav%}
+                    <li class="{{nn.1}}">
+                    {% if nn.2|length > 0 %}
+                        <a href="{{nn.2}}">{{nn.0}}</a>
+                    {% else %}
+                        {{nn.0}}
+                    {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+            {% block left_side %}
+            {% endblock %}
+        </div>
+        <div class="span10">
+            {% block right_side %}
+                some base sampler content
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}
